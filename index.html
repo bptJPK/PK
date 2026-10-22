@@ -1,0 +1,1423 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <title>Matriks Pemetaan & Peralatan NOSS</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    :root {
+      --primary: #15803d;
+      --border-color: #cbd5e1;
+      --cu-row-bg: #eff6ff;
+      --active-blue: #1d4ed8;
+      --active-light-blue: #e0f2fe;
+      --equipment-header: #d97706;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: #f8fafc; color: #334155; padding: 10px; }
+    .container { max-width: 100%; margin: 0 auto; background: #ffffff; padding: 12px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.08); }
+
+    .program-header-compact { 
+      background: #f8fafc; border: 1px solid var(--border-color); border-radius: 6px; 
+      padding: 8px 12px; margin-bottom: 8px; display: flex; align-items: center; 
+      gap: 12px; font-size: 13px; flex-wrap: wrap; justify-content: flex-start;
+    }
+    .info-item { display: flex; align-items: center; gap: 6px; }
+    .info-label { font-weight: 700; color: #1e293b; white-space: nowrap; }
+    
+    .info-value { 
+      font-weight: 700; color: #0f172a; 
+      white-space: normal !important; 
+      word-break: break-word !important; 
+      max-width: 100%;
+    }
+    
+    .program-code-select { padding: 4px 8px; font-size: 13px; font-weight: bold; border: 1px solid #94a3b8; border-radius: 4px; background-color: #fff; width: 200px; }
+    .tahap-badge { background-color: #dbeafe; color: #1e40af; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 800; border: 1px solid #bfdbfe; white-space: nowrap; }
+
+    /* Lencana Elektif Dinamik (Hanya untuk Cetakan) */
+    .elective-badge-print-only { display: none; }
+    .elective-badge-active { background-color: #fef3c7; color: #b45309; border: 1px solid #fde68a; font-weight: 800; }
+    .elective-badge-dim { background-color: #f1f5f9; color: #94a3b8; border: 1px solid #cbd5e1; font-weight: 600; opacity: 0.6; }
+
+    /* Modal Overlay & Styling (Pastikan disorokkan secara lalai dan terapung bila dibuka) */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(2px);
+      display: none; justify-content: center; align-items: center; z-index: 99999;
+    }
+    .modal-card {
+      background: #ffffff; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      width: 480px; max-width: 90vw; max-height: 85vh; display: flex; flex-direction: column;
+      overflow: hidden; border: 1px solid #cbd5e1;
+    }
+    .modal-header {
+      background: #f8fafc; padding: 10px 14px; font-weight: 800; font-size: 13px; color: #1e293b;
+      border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;
+    }
+    .modal-body { padding: 12px 14px; overflow-y: auto; flex: 1; }
+    .modal-footer {
+      background: #f8fafc; padding: 8px 14px; border-top: 1px solid #e2e8f0;
+      display: flex; justify-content: flex-end; gap: 8px;
+    }
+    .pk-option-item {
+      display: flex; align-items: center; gap: 8px; padding: 6px 8px;
+      border-radius: 4px; cursor: pointer; font-size: 12px;
+    }
+    .pk-option-item:hover { background: #f1f5f9; }
+
+    /* Toggle Switch Elektif */
+    .switch-container { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: #475569; cursor: pointer; }
+    .switch { position: relative; display: inline-block; width: 38px; height: 20px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .3s; border-radius: 20px; }
+    .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+    input:checked + .slider { background-color: #2563eb; }
+    input:checked + .slider:before { transform: translateX(18px); }
+
+    /* Drag & Drop Zone */
+    .drop-zone-large { 
+      flex-grow: 1; border: 2px dashed #16a34a; background-color: #f0fdf4; border-radius: 6px; 
+      padding: 6px 12px; text-align: center; cursor: pointer; transition: all 0.2s ease-in-out; 
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px; 
+      font-size: 11px; font-weight: 700; color: #15803d; min-width: 240px;
+    }
+    .drop-zone-large:hover, .drop-zone-large.dragover { 
+      background-color: #86efac !important; 
+      border-color: #15803d !important; 
+      color: #052e16 !important; 
+      box-shadow: 0 2px 8px rgba(22, 163, 74, 0.25);
+    }
+
+    .btn-download-link { color: #2563eb; font-weight: 700; font-size: 12px; text-decoration: none; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+    .btn-download-link:hover { text-decoration: underline; color: #1d4ed8; }
+
+    /* Navigasi Tab */
+    .tab-navigation { display: flex; border-bottom: 2px solid #cbd5e1; margin-bottom: 8px; gap: 4px; }
+    .tab-btn { padding: 6px 14px; font-weight: 700; font-size: 12px; border: 1px solid #cbd5e1; border-bottom: none; background: #f1f5f9; color: #475569; border-radius: 6px 6px 0 0; cursor: pointer; transition: all 0.2s; }
+    .tab-btn.active { background: #1d4ed8; color: #ffffff; border-color: #1d4ed8; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Controls Bar */
+    .controls-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; background: #f1f5f9; padding: 6px 10px; border-radius: 6px; flex-wrap: wrap; gap: 8px; font-size: 12px; }
+    .btn { padding: 5px 10px; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 12px; display: inline-flex; align-items: center; gap: 4px; transition: background 0.2s; }
+    .btn-outline { background-color: white; border: 1px solid #cbd5e1; color: #334155; }
+    .btn-outline:hover { background-color: #e2e8f0; }
+    .btn-print { background-color: #475569; color: white; }
+    .btn-print:hover { background-color: #334155; }
+
+    /* Summary Bar */
+    .summary-bar { display: flex; gap: 10px; background: #ffffff; border: 1px solid #e2e8f0; padding: 4px 10px; border-radius: 4px; font-size: 11px; align-items: center; }
+    .summary-value { font-weight: bold; color: #2563eb; background: #eff6ff; padding: 2px 6px; border-radius: 10px; border: 1px solid #bfdbfe; margin-left: 2px; }
+
+    .matrix-wrapper { overflow-x: auto; max-height: calc(100vh - 210px); overflow-y: auto; border: 1px solid var(--border-color); position: relative; }
+    table.matrix-table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 11px; }
+    table.matrix-table th, table.matrix-table td { border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); text-align: center; padding: 0; }
+
+    .col-bil { width: 40px; min-width: 40px; position: sticky; left: 0; z-index: 10; background: #fff; }
+    .col-cu-name { width: 380px; min-width: 380px; position: sticky; left: 40px; z-index: 10; background: #fff; text-align: left !important; padding: 4px 6px !important; }
+    .col-process { width: 38px; min-width: 38px; max-width: 38px; }
+
+    /* Header Text Menegak (Skrin) */
+    .process-header-cell { height: 190px; vertical-align: bottom; padding-bottom: 6px !important; background-color: #f8fafc; position: sticky; top: 0; z-index: 5; }
+    .vertical-text-wrapper { writing-mode: vertical-rl; transform: rotate(180deg); white-space: normal; word-break: break-word; width: 30px; height: 175px; display: flex; align-items: center; justify-content: flex-start; text-align: left; line-height: 1.15; margin: 0 auto; font-weight: 600; font-size: 11px; color: #1e293b; outline: none; }
+
+    .process-header-cell.active-header { background-color: var(--active-blue) !important; }
+    .process-header-cell.active-header .vertical-text-wrapper { color: #ffffff !important; font-weight: bold; }
+
+    .header-row-1 th { background-color: #f1f5f9; position: sticky; top: 0; z-index: 12; font-weight: 700; }
+    .header-row-p-code th { position: sticky; top: 190px; z-index: 12; background-color: #00e676; color: #000; font-weight: 800; font-size: 10px; padding: 4px 0 !important; }
+    .header-row-p-code th.active-code { background-color: #15803d !important; color: #ffffff !important; }
+    
+    .trash-icon { cursor: pointer; color: #ef4444; transition: transform 0.1s; }
+    .trash-icon:hover { transform: scale(1.2); }
+
+    .cu-group-row { background-color: var(--cu-row-bg) !important; font-weight: bold; }
+    .cu-group-row td { background-color: var(--cu-row-bg) !important; border-top: 2px solid #93c5fd; }
+    .cu-group-title { color: #1e3a8a; display: flex; align-items: center; gap: 6px; }
+    .toggle-icon { cursor: pointer; user-select: none; display: inline-block; width: 16px; text-align: center; color: #2563eb; font-weight: bold; }
+
+    .matrix-cell { cursor: pointer; height: 28px; user-select: none; transition: background-color 0.1s; }
+    .matrix-cell:hover { background-color: #f1f5f9; }
+    .matrix-cell.checked { background-color: #0f2b48 !important; color: #ff9800; font-size: 15px; font-weight: bold; }
+    .matrix-cell.cu-summary-checked { background-color: #1e3a8a !important; color: #4ade80; font-size: 13px; font-weight: bold; }
+
+    .wa-row { background-color: #ffffff; }
+    .wa-row.wa-row-highlight { background-color: var(--active-light-blue) !important; }
+    .wa-row.wa-row-highlight .col-cu-name, .wa-row.wa-row-highlight .col-bil { background-color: var(--active-light-blue) !important; font-weight: 600; }
+    .wa-tag { display: inline-block; background: #e2e8f0; color: #475569; font-size: 10px; font-weight: 700; padding: 1px 4px; border-radius: 3px; margin-right: 6px; }
+
+    .table-equipment th.eq-header { background-color: var(--equipment-header) !important; color: white; padding: 6px; }
+    .table-equipment td input, .table-equipment td select { width: 100%; border: 1px solid #cbd5e1; padding: 4px; border-radius: 3px; font-size: 11px; text-align: center; }
+    .select-nisbah { font-weight: bold; color: #1e3a8a; }
+    .pk-trigger-box { background: #ffffff; border: 1px solid #94a3b8; border-radius: 4px; padding: 4px 8px; min-height: 28px; cursor: pointer; display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+    .pk-badge { background-color: #2563eb; color: #ffffff; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 10px; }
+
+    /* Legenda Laporan */
+    .report-legend-box {
+      margin-top: 10px; padding: 8px 12px; background: #f8fafc; border: 1px solid #e2e8f0; 
+      border-radius: 6px; font-size: 11px; font-weight: 700; color: #475569; display: flex; gap: 20px; align-items: center;
+    }
+
+    /* Tab 3 Reka Bentuk Kad Stesen */
+    .facility-header-card {
+      background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px;
+      padding: 12px 18px; margin-bottom: 12px;
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;
+    }
+    .facility-title-box h3 { font-size: 16px; font-weight: 800; color: #1e293b; margin-bottom: 2px; }
+    .facility-title-box p { font-size: 11px; color: #64748b; }
+    
+    .facility-stats-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .stat-station-box { text-align: center; padding: 4px 10px; }
+    .stat-station-box .stat-label { font-size: 10px; font-weight: 700; color: #64748b; letter-spacing: 0.5px; text-transform: uppercase; }
+    .stat-station-box .stat-value { font-size: 24px; font-weight: 900; color: #334155; }
+
+    .stat-sum-box {
+      border: 2px solid #86efac; border-radius: 8px; background: #f0fdf4;
+      padding: 6px 14px; text-align: center; min-width: 130px;
+    }
+    .stat-sum-box .stat-label { font-size: 10px; font-weight: 800; color: #15803d; letter-spacing: 0.5px; text-transform: uppercase; }
+    .stat-sum-box .stat-value { font-size: 22px; font-weight: 900; color: #16a34a; }
+
+    /* Kotak Kosong Kapasiti Sebenar Header */
+    .stat-actual-box {
+      border: 2px dashed #94a3b8; border-radius: 8px; background: #ffffff;
+      padding: 6px 14px; text-align: center; min-width: 140px; min-height: 58px;
+      display: flex; flex-direction: column; justify-content: space-between;
+    }
+    .stat-actual-box .stat-label { font-size: 10px; font-weight: 800; color: #475569; letter-spacing: 0.5px; text-transform: uppercase; }
+
+    .station-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 14px; margin-bottom: 14px;
+    }
+    .station-card {
+      background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px;
+      padding: 12px 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      display: flex; flex-direction: column; justify-content: space-between;
+    }
+    .station-card-top {
+      display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; margin-bottom: 8px;
+    }
+    .station-title { font-size: 15px; font-weight: 800; color: #1e293b; }
+    .station-cu-badges { display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; }
+
+    .cu-badge-tooltip {
+      position: relative;
+      display: inline-block;
+      background: #f0f9ff;
+      color: #0284c7;
+      border: 1px solid #bae6fd;
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-size: 10px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .cu-badge-tooltip:hover {
+      background: #0284c7;
+      color: #ffffff;
+      border-color: #0284c7;
+    }
+    .cu-badge-tooltip::after {
+      content: "WA: " attr(data-tooltip);
+      position: absolute;
+      bottom: 130%;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #0f172a;
+      color: #f8fafc;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      z-index: 100;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+    .cu-badge-tooltip:hover::after {
+      opacity: 1;
+      transform: translateX(-50%) translateY(-2px);
+    }
+
+    .station-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 6px; }
+    .station-table th { text-align: left; padding: 4px 6px; border-bottom: 1px solid #e2e8f0; color: #1e293b; font-weight: 700; font-size: 11px; }
+    .station-table td { padding: 4px 6px; border-bottom: 1px solid #f1f5f9; color: #334155; }
+    .station-table .col-num { text-align: center; }
+
+    .bottleneck-highlight td { color: #ea580c !important; font-weight: 800 !important; }
+    .bottleneck-highlight td strong { color: #c2410c !important; }
+
+    .station-min-card {
+      background: #fffbeb; border: 1px solid #fef08a; border-radius: 6px;
+      padding: 8px 12px; margin-top: 8px; display: flex; justify-content: space-between; align-items: center;
+    }
+    .station-min-card .min-title { font-size: 11px; font-weight: 800; color: #92400e; }
+    .station-min-card .min-sub { font-size: 10.5px; color: #78350f; margin-top: 1px; }
+    .station-min-card .min-val { font-size: 20px; font-weight: 900; color: #b45309; }
+
+    /* Kotak Kosong Kapasiti Sebenar Kad Stesen */
+    .station-actual-card {
+      border: 1px dashed #94a3b8; border-radius: 6px; background: #ffffff;
+      padding: 8px 12px; margin-top: 6px; min-height: 48px; display: flex;
+      justify-content: space-between; align-items: center;
+    }
+    .station-actual-card .actual-title { font-size: 10.5px; font-weight: 800; color: #475569; }
+    .station-actual-card .actual-box-empty { width: 70px; height: 30px; border-bottom: 2px solid #cbd5e1; }
+
+    .btn-expand-station {
+      background: none; border: none; color: #0284c7; font-size: 11px; font-weight: 700;
+      cursor: pointer; padding: 4px 0; display: inline-flex; align-items: center; gap: 4px;
+    }
+    .btn-expand-station:hover { text-decoration: underline; color: #0369a1; }
+
+    .print-footer-container {
+      display: none;
+    }
+
+    @media print {
+      body { padding: 0; background: #fff; padding-bottom: 35px !important; }
+      .container { padding: 0; box-shadow: none; max-width: 100%; }
+      .controls-bar, .tab-navigation, .drop-zone-large, .trash-icon, .btn-download-link, .btn-expand-station, #programInput { display: none !important; }
+      .tab-content { display: block !important; margin-bottom: 20px; }
+      #tab2, #tab3 { page-break-before: always; }
+      .hidden-eq-row { display: table-row !important; }
+      .matrix-wrapper { max-height: none !important; overflow: visible !important; border: none !important; }
+      .col-bil, .col-cu-name { position: static !important; }
+      table.matrix-table { width: 100%; }
+
+      /* Ulang Header Jadual Pada Setiap Muka Surat Baharu */
+      thead {
+        display: table-header-group !important;
+      }
+      tr {
+        page-break-inside: avoid !important;
+      }
+      .station-card {
+        page-break-inside: avoid !important;
+      }
+
+      /* Sembunyikan Teks Menegak 190px - Jimat Ruang Pada Cetakan */
+      .process-header-cell {
+        display: none !important;
+      }
+      .header-row-p-code th {
+        top: 0 !important;
+        position: static !important;
+      }
+
+      /* Footer Kekal Pada Bawah Setiap Muka Baharu */
+      .print-footer-container {
+        display: flex !important;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        justify-content: space-between;
+        align-items: center;
+        padding: 6px 15px;
+        background: #ffffff;
+        border-top: 1px solid #cbd5e1;
+        font-size: 10px;
+        font-weight: 700;
+        color: #475569;
+        z-index: 9999;
+      }
+
+      .elective-badge-print-only {
+        display: inline-block !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  
+  <div class="program-header-compact">
+    <div class="info-item">
+      <span class="info-label">Cari Program:</span>
+      <input type="text" id="programInput" list="programDatalist" placeholder="Pilih / Taip Kod..." oninput="onProgramSearchSelect(this.value)" class="program-code-select">
+      <datalist id="programDatalist"></datalist>
+    </div>
+    
+    <div class="info-item" style="flex:1; min-width: 180px;">
+      <span class="info-label">Nama Program:</span>
+      <span class="info-value" id="progName">Sila pilih program...</span>
+    </div>
+    
+    <div class="info-item">
+      <span class="tahap-badge" id="progTahap">Tahap -</span>
+    </div>
+
+    <!-- Lencana Elektif (Hanya Muncul Pada Versi Cetakan) -->
+    <div class="info-item elective-badge-print-only">
+      <span class="tahap-badge elective-badge-dim" id="electiveBadge">Tanpa Elektif</span>
+    </div>
+
+    <label class="switch-container" title="Togol untuk tunjuk/sembunyi Unit Elektif (E-coded)">
+      <div class="switch">
+        <input type="checkbox" id="includeElectiveToggle" onchange="onElectiveToggleChange()">
+        <span class="slider"></span>
+      </div>
+      <span>Elektif</span>
+    </label>
+
+    <div id="dropZone" class="drop-zone-large" onclick="document.getElementById('excelFileInput').click()">
+      <span style="font-size: 16px;">☁️</span>
+      <span id="dropZoneText">Heret & Lepas Fail Excel Sini Atau Klik Untuk Muat Naik</span>
+      <input type="file" id="excelFileInput" accept=".xlsx, .xls, .xlsm" style="display: none;" onchange="handleFileSelect(event)">
+    </div>
+
+    <a class="btn-download-link" onclick="downloadTemplate()" title="Klik untuk muat turun templat Excel contoh">
+      <span>📥</span> Muat turun Templat
+    </a>
+  </div>
+
+  <div class="tab-navigation">
+    <button class="tab-btn active" id="btnTab1" onclick="switchTab(event, 'tab1')">Tab 1: Pemetaan CU-WA vs Proses Kerja</button>
+    <button class="tab-btn" id="btnTab2" onclick="switchTab(event, 'tab2')">Tab 2: Pemetaan Peralatan & Stesen</button>
+    <button class="tab-btn" id="btnTab3" onclick="switchTab(event, 'tab3')">Tab 3: Simulasi Penilaian Kapasiti (WA & Stesen)</button>
+  </div>
+
+  <div class="controls-bar">
+    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+      <button class="btn btn-outline" onclick="addProcessColumn()"><span>➕</span> Proses Kerja</button>
+      <button class="btn btn-outline" onclick="addEquipmentRow()"><span>➕</span> Peralatan</button>
+      <button class="btn btn-outline" onclick="toggleCollapseAll()"><span>📁</span> <span id="collapseBtnText">Collapse CU</span></button>
+      <button class="btn btn-outline" style="background:#fef3c7; border-color:#f59e0b;" onclick="recalculateCapacity()"><span>⚡</span> Kira Semula Kapasiti</button>
+      <button class="btn btn-outline" style="background:#f1f5f9; border-color:#94a3b8;" onclick="openPBSettingsModal()"><span>🏛️</span> Maklumat PB</button>
+    </div>
+
+    <div style="display: flex; gap: 10px; align-items: center;">
+      <div class="summary-bar">
+        <span>CU Padanan: <strong id="matchedCUCount" class="summary-value">0 / 0</strong></span>
+        <span>WA Padanan: <strong id="matchedWACount" class="summary-value">0 / 0</strong></span>
+        <span>Proses Kerja Padanan: <strong id="matchedPKCount" class="summary-value">0 / 0</strong></span>
+      </div>
+      <button class="btn btn-print" onclick="window.print()"><span>🖨️</span> Cetak Laporan</button>
+    </div>
+  </div>
+
+  <div id="tab1" class="tab-content active">
+    <div class="matrix-wrapper">
+      <table class="matrix-table">
+        <thead>
+          <tr class="header-row-1" id="headerRow1">
+            <th class="col-bil" rowspan="2">BIL</th>
+            <th class="col-cu-name" rowspan="2" style="text-align: center !important;">COMPETENCY UNIT / WORK ACTIVITY [CU - WA]</th>
+          </tr>
+          <tr class="header-row-p-code" id="headerRow2"></tr>
+        </thead>
+        <tbody id="matrixBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="tab2" class="tab-content">
+    <div class="matrix-wrapper">
+      <table class="matrix-table table-equipment" id="equipmentTable">
+        <thead>
+          <tr class="header-row-1">
+            <th class="col-bil eq-header">BIL</th>
+            <th class="eq-header" style="width: 320px;">NAMA ALAT / KELENGKAPAN / BAHAN</th>
+            <th class="eq-header" style="width: 60px;">QTY</th>
+            <th class="eq-header" style="width: 90px;">NISBAH</th>
+            <th class="eq-header" style="width: 130px;">STESEN KERJA</th>
+            <th class="eq-header" style="width: 280px;">PROSES KERJA TERKAIT</th>
+          </tr>
+        </thead>
+        <tbody id="equipmentBody"></tbody>
+      </table>
+    </div>
+    
+    <!-- Legenda Laporan Tab 2 -->
+    <div class="report-legend-box">
+      <span><strong>Nota / Legenda:</strong></span>
+      <span>• <strong>QTY</strong> = Kuantiti Alat</span>
+      <span>• <strong>MK</strong> = Mengikut Keperluan</span>
+    </div>
+  </div>
+
+  <div id="tab3" class="tab-content">
+    <div class="facility-header-card">
+      <div class="facility-title-box">
+        <h3>Kapasiti Bengkel (Situasi Serentak)</h3>
+        <p>Formula: Kapasiti Stesen = <strong>MIN</strong> (Alat dalam Stesen) &nbsp;|&nbsp; Kapasiti Keseluruhan Fasiliti = <strong>SUM</strong> (Semua Stesen Sedia Ada)</p>
+      </div>
+
+      <div class="facility-stats-row">
+        <div style="background:#f8fafc; border:1px solid #cbd5e1; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:600;">
+          <span style="color:#475569;">Nisbah Coach : Perantis (Cap):</span>
+          <select id="coachRatioCap" onchange="recalculateCapacity()" style="margin-left:6px; padding:2px 6px; font-weight:bold; border-radius:4px; border:1px solid #94a3b8;">
+            <option value="1">1:1</option>
+            <option value="2">1:2</option>
+            <option value="5" selected>1:5 (Lalai)</option>
+            <option value="10">1:10</option>
+            <option value="25">1:25</option>
+          </select>
+        </div>
+
+        <div class="stat-station-box">
+          <div class="stat-label">Bilangan Stesen</div>
+          <div class="stat-value" id="dispTotalStations">0</div>
+        </div>
+
+        <!-- Ditukar ke KAPASITI (TEORI) -->
+        <div class="stat-sum-box">
+          <div class="stat-label">Kapasiti (Teori)</div>
+          <div class="stat-value" id="dispGrandCapacity">0 Orang</div>
+        </div>
+
+        <!-- Kotak Kosong Kapasiti Sebenar -->
+        <div class="stat-actual-box">
+          <div class="stat-label">Kapasiti Sebenar</div>
+          <div style="height: 24px; border-bottom: 2px solid #cbd5e1; margin-top: auto;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Grid Kad Stesen Kerja -->
+    <div id="stationDashboardGrid" class="station-grid"></div>
+
+    <div style="margin: 12px 0; display:flex; justify-content:space-between; align-items:center;">
+      <button class="btn btn-outline" onclick="toggleCapacityTable()" style="border-color:#0284c7; color:#0369a1; font-weight:bold; background:#fff;">
+        👁️ <span id="toggleTableBtnText">Papar Perincian Peralatan (Jadual)</span>
+      </button>
+      <span style="font-size:11px; color:#64748b; font-style:italic;">* Jadual rata peralatan disembunyikan secara lalai.</span>
+    </div>
+
+    <div id="capacityTableWrapper" class="matrix-wrapper" style="display:none;">
+      <table class="matrix-table table-equipment">
+        <thead>
+          <tr class="header-row-1">
+            <th class="col-bil eq-header" style="background:#0284c7 !important;">BIL</th>
+            <th class="eq-header" style="background:#0284c7 !important; width: 280px;">NAMA ALAT / KELENGKAPAN</th>
+            <th class="eq-header" style="background:#0284c7 !important; width: 70px;">QTY</th>
+            <th class="eq-header" style="background:#0284c7 !important; width: 110px;">NISBAH ITEM</th>
+            <th class="eq-header" style="background:#0284c7 !important; width: 120px;">STESEN KERJA</th>
+            <th class="eq-header" style="background:#0284c7 !important; width: 150px;">KAPASITI MAX (PELAJAR)</th>
+          </tr>
+        </thead>
+        <tbody id="capacityTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div class="print-footer-container">
+  <span id="footerPbNameDisplay">Pusat Bertauliah Demo</span>
+  <span id="footerPbAddressDisplay">Kuala Lumpur</span>
+</div>
+
+<!-- Modal Pop-Up Pilihan Proses Kerja (Tab 2) -->
+<div id="pkModal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-header">
+      <span>Pilih Proses Kerja Terlibat</span>
+      <span style="cursor:pointer; font-size:18px;" onclick="closePKModal()">✖</span>
+    </div>
+    <div class="modal-body" id="modalPKOptionsList"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closePKModal()">Batal</button>
+      <button class="btn" style="background:#15803d; color:white;" onclick="savePKModalSelection()">Simpan Pilihan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Pop-Up Maklumat PB (Jimat Ruang UI) -->
+<div id="pbSettingsModal" class="modal-overlay">
+  <div class="modal-card" style="width: 420px;">
+    <div class="modal-header">
+      <span>🏛️ Tetapan Maklumat PB (Footer Cetakan)</span>
+      <span style="cursor:pointer; font-size:18px;" onclick="closePBSettingsModal()">✖</span>
+    </div>
+    <div class="modal-body" style="display:flex; flex-direction:column; gap:12px; font-size:12px;">
+      <div>
+        <label style="font-weight:700; color:#1e293b; display:block; margin-bottom:4px;">Nama Pusat Bertauliah (PB):</label>
+        <input type="text" id="pbNameInput" value="Pusat Bertauliah Demo" class="program-code-select" style="width:100%;" placeholder="Contoh: Kolej Komuniti Sandakan">
+      </div>
+      <div>
+        <label style="font-weight:700; color:#1e293b; display:block; margin-bottom:4px;">Alamat Ringkas / Bandar:</label>
+        <input type="text" id="pbAddressInput" value="Kuala Lumpur" class="program-code-select" style="width:100%;" placeholder="Contoh: Sandakan, Sabah">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closePBSettingsModal()">Tutup</button>
+      <button class="btn" style="background:#15803d; color:white;" onclick="savePBSettings()">Simpan Maklumat</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let customTemplateDownloadUrl = "https://drive.google.com/uc?export=download&id=1lJ-QE09JrG7T4Tj3hGMptzPX2bblXa2F";
+
+  let programDatabase = {};
+  let currentProgramKey = "";
+  let matrixState = {};
+  let cuCollapsedState = {};
+  let isAllCollapsed = false;
+  let activeMaxColumns = 0;
+  let processTitles = {};
+  let equipmentList = [];
+  let currentEditingEqIndex = -1;
+
+  let stationExpandedState = {};
+
+  function openPBSettingsModal() {
+    document.getElementById('pbSettingsModal').style.display = 'flex';
+  }
+
+  function closePBSettingsModal() {
+    document.getElementById('pbSettingsModal').style.display = 'none';
+  }
+
+  function savePBSettings() {
+    updatePrintFooter();
+    closePBSettingsModal();
+  }
+
+  function updatePrintFooter() {
+    const pbName = document.getElementById('pbNameInput').value || '';
+    const pbAddr = document.getElementById('pbAddressInput').value || '';
+    document.getElementById('footerPbNameDisplay').textContent = pbName;
+    document.getElementById('footerPbAddressDisplay').textContent = pbAddr;
+  }
+
+  function loadDataFromAppsScript() {
+    if (typeof google !== 'undefined' && google.script && google.script.run) {
+      google.script.run.withSuccessHandler(function(data) {
+        if (data) {
+          programDatabase = data;
+          setupSearchDatalist();
+        }
+      }).getProgramData();
+    }
+  }
+
+  function setupSearchDatalist() {
+    const datalist = document.getElementById('programDatalist');
+    if (!datalist) return;
+    datalist.innerHTML = '';
+    
+    Object.keys(programDatabase).forEach(code => {
+      const prog = programDatabase[code];
+      const option = document.createElement('option');
+      option.value = code;
+      option.label = `${code} - ${prog.name}`;
+      datalist.appendChild(option);
+    });
+  }
+
+  function onProgramSearchSelect(val) {
+    if (!val) return;
+    val = val.trim();
+
+    let foundKey = Object.keys(programDatabase).find(k => k.toLowerCase() === val.toLowerCase());
+    if (!foundKey) {
+      foundKey = Object.keys(programDatabase).find(k => k.toLowerCase().includes(val.toLowerCase()) || (programDatabase[k].name && programDatabase[k].name.toLowerCase().includes(val.toLowerCase())));
+    }
+
+    if (foundKey && programDatabase[foundKey]) {
+      currentProgramKey = foundKey;
+      initMatrix();
+    }
+  }
+
+  function onElectiveToggleChange() {
+    const isChecked = document.getElementById('includeElectiveToggle').checked;
+    const badge = document.getElementById('electiveBadge');
+    
+    if (badge) {
+      if (isChecked) {
+        badge.textContent = "Termasuk Elektif";
+        badge.className = "tahap-badge elective-badge-active";
+      } else {
+        badge.textContent = "Tanpa Elektif";
+        badge.className = "tahap-badge elective-badge-dim";
+      }
+    }
+
+    if (currentProgramKey) initMatrix();
+  }
+
+  function getFilteredCUs(prog) {
+    if (!prog || !prog.cus) return [];
+    const includeElective = document.getElementById('includeElectiveToggle') ? document.getElementById('includeElectiveToggle').checked : false;
+    if (includeElective) return prog.cus;
+
+    return prog.cus.filter(cu => {
+      const code = (cu.code || '').toUpperCase();
+      return code.includes('-C') || code.includes('C0') || code.includes('C1') || !code.includes('-E');
+    });
+  }
+
+  function initMatrix() {
+    const prog = programDatabase[currentProgramKey];
+    if (!prog) return;
+
+    document.getElementById('progName').textContent = prog.name || currentProgramKey;
+
+    let rawTahap = String(prog.tahap || '-').trim();
+    rawTahap = rawTahap.replace(/^Tahap\s+(?=(Tahap|Bermula))/i, '');
+    document.getElementById('progTahap').textContent = rawTahap;
+
+    matrixState = {};
+    cuCollapsedState = {};
+
+    const filteredCUs = getFilteredCUs(prog);
+
+    filteredCUs.forEach((cu, cuIdx) => {
+      cuCollapsedState[cuIdx] = false;
+      if (cu.was) {
+        cu.was.forEach((_, waIdx) => { matrixState[`${cuIdx}_${waIdx}`] = {}; });
+      }
+    });
+
+    renderHeaders();
+    renderTable();
+    renderEquipmentTable();
+    recalculateCapacity();
+  }
+
+  function addProcessColumn() {
+    let name = prompt("Sila masukkan nama Proses Kerja baharu (Cth: Penyediaan Fail):");
+    if (name && name.trim() !== "") {
+      activeMaxColumns++;
+      let newPId = 'P' + String(activeMaxColumns).padStart(2, '0');
+      processTitles[newPId] = name.trim();
+      renderHeaders();
+      renderTable();
+      renderEquipmentTable();
+      recalculateCapacity();
+    }
+  }
+
+  function deleteProcessColumn(colNumber) {
+    if(!confirm("Adakah anda pasti untuk memadam Proses Kerja P" + String(colNumber).padStart(2, '0') + "?")) return;
+
+    for(let i = colNumber; i < activeMaxColumns; i++) {
+        let currP = 'P' + String(i).padStart(2, '0');
+        let nextP = 'P' + String(i+1).padStart(2, '0');
+        processTitles[currP] = processTitles[nextP];
+    }
+    delete processTitles['P' + String(activeMaxColumns).padStart(2, '0')];
+
+    for (let key in matrixState) {
+        for(let i = colNumber; i < activeMaxColumns; i++) {
+            let currP = 'P' + String(i).padStart(2, '0');
+            let nextP = 'P' + String(i+1).padStart(2, '0');
+            matrixState[key][currP] = matrixState[key][nextP];
+        }
+        delete matrixState[key]['P' + String(activeMaxColumns).padStart(2, '0')];
+    }
+
+    equipmentList.forEach(eq => {
+        if (!eq.pkList) return;
+        let newPkList = [];
+        eq.pkList.forEach(pk => {
+            let pkNum = parseInt(pk.substring(1));
+            if (pkNum < colNumber) newPkList.push(pk);
+            else if (pkNum > colNumber) newPkList.push('P' + String(pkNum - 1).padStart(2, '0'));
+        });
+        eq.pkList = newPkList;
+        eq.pk = newPkList.join(', ');
+    });
+
+    activeMaxColumns--;
+    renderHeaders();
+    renderTable();
+    renderEquipmentTable();
+    recalculateCapacity();
+  }
+
+  function renderHeaders() {
+    const row1 = document.getElementById('headerRow1');
+    const row2 = document.getElementById('headerRow2');
+    if (!row1 || !row2) return;
+
+    row1.innerHTML = `<th class="col-bil" rowspan="2">BIL</th><th class="col-cu-name" rowspan="2" style="text-align: center !important;">COMPETENCY UNIT / WORK ACTIVITY [CU - WA]</th>`;
+    row2.innerHTML = '';
+
+    for (let i = 1; i <= activeMaxColumns; i++) {
+      let pId = 'P' + String(i).padStart(2, '0');
+      let rawTitle = processTitles[pId] || `Proses Kerja ${i}`;
+      let cleanTitle = rawTitle.replace(/^P\d+\s*[-–:]\s*/i, '');
+
+      const th1 = document.createElement('th');
+      th1.className = 'col-process process-header-cell';
+      th1.id = `header_cell_${pId}`;
+      th1.innerHTML = `<div class="vertical-text-wrapper" contenteditable="true" title="Klik untuk edit">${cleanTitle}</div>`;
+      row1.appendChild(th1);
+
+      const th2 = document.createElement('th');
+      th2.className = 'col-process';
+      th2.id = `header_code_${pId}`;
+      th2.innerHTML = `
+        <div style="display:flex; flex-direction:column; align-items:center; gap:2px;">
+          <span>${pId}</span>
+          <span class="trash-icon" style="font-size:10px;" onclick="deleteProcessColumn(${i})" title="Padam Lajur">🗑️</span>
+        </div>
+      `;
+      row2.appendChild(th2);
+    }
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById('matrixBody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    const prog = programDatabase[currentProgramKey];
+    if (!prog) {
+      tbody.innerHTML = `<tr><td colspan="${activeMaxColumns + 2}" style="padding: 20px; color: #64748b; font-style: italic;">Sila pilih program di bahagian atas untuk memuatkan jadual pemetaan.</td></tr>`;
+      return;
+    }
+
+    const filteredCUs = getFilteredCUs(prog);
+    let globalRowIndex = 1;
+    let activeProcessesSet = new Set();
+    
+    let totalCU = filteredCUs.length;
+    let matchedCU = 0;
+    let totalWA = 0;
+    let matchedWA = 0;
+
+    filteredCUs.forEach((cu, cuIdx) => {
+      const isCollapsed = cuCollapsedState[cuIdx] || isAllCollapsed;
+      const cuRow = document.createElement('tr');
+      cuRow.className = 'cu-group-row';
+
+      const tdBil = document.createElement('td');
+      tdBil.className = 'col-bil';
+      tdBil.textContent = globalRowIndex;
+      cuRow.appendChild(tdBil);
+
+      const tdCuTitle = document.createElement('td');
+      tdCuTitle.className = 'col-cu-name';
+      tdCuTitle.innerHTML = `
+        <div class="cu-group-title">
+          <span class="toggle-icon" onclick="toggleCuCollapse(${cuIdx})">${isCollapsed ? '►' : '▼'}</span>
+          <span><strong>${cu.code}</strong> - ${cu.title}</span>
+        </div>
+      `;
+      cuRow.appendChild(tdCuTitle);
+
+      let cuHasMatch = false;
+
+      for (let p = 1; p <= activeMaxColumns; p++) {
+        const pId = 'P' + String(p).padStart(2, '0');
+        const tdP = document.createElement('td');
+        tdP.className = 'col-process matrix-cell';
+
+        let hasCheckedWA = cu.was && cu.was.some((_, waIdx) => matrixState[`${cuIdx}_${waIdx}`] && matrixState[`${cuIdx}_${waIdx}`][pId]);
+        if (hasCheckedWA) {
+          tdP.classList.add('cu-summary-checked');
+          tdP.textContent = '✓';
+          activeProcessesSet.add(pId);
+          cuHasMatch = true;
+        }
+
+        tdP.onclick = () => {
+          if (isCollapsed && cu.was) {
+            const newState = !hasCheckedWA;
+            cu.was.forEach((_, waIdx) => {
+              if (!matrixState[`${cuIdx}_${waIdx}`]) matrixState[`${cuIdx}_${waIdx}`] = {};
+              matrixState[`${cuIdx}_${waIdx}`][pId] = newState;
+            });
+            renderTable();
+            recalculateCapacity();
+          }
+        };
+
+        cuRow.appendChild(tdP);
+      }
+      tbody.appendChild(cuRow);
+
+      if (cuHasMatch) matchedCU++;
+
+      if (!isCollapsed && cu.was) {
+        cu.was.forEach((wa, waIdx) => {
+          totalWA++;
+          const waRow = document.createElement('tr');
+          waRow.className = 'wa-row';
+
+          let waHasMatch = false;
+
+          const tdWaBil = document.createElement('td');
+          tdWaBil.className = 'col-bil';
+          tdWaBil.style.fontSize = '10px';
+          tdWaBil.style.color = '#94a3b8';
+          tdWaBil.textContent = `${globalRowIndex}.${waIdx + 1}`;
+          waRow.appendChild(tdWaBil);
+
+          const tdWaTitle = document.createElement('td');
+          tdWaTitle.className = 'col-cu-name';
+          tdWaTitle.style.paddingLeft = '20px';
+          tdWaTitle.innerHTML = `<span class="wa-tag">WA${waIdx + 1}</span>${wa}`;
+          waRow.appendChild(tdWaTitle);
+
+          for (let p = 1; p <= activeMaxColumns; p++) {
+            const pId = 'P' + String(p).padStart(2, '0');
+            const tdCell = document.createElement('td');
+            tdCell.className = 'col-process matrix-cell';
+
+            if (matrixState[`${cuIdx}_${waIdx}`] && matrixState[`${cuIdx}_${waIdx}`][pId]) {
+              tdCell.classList.add('checked');
+              tdCell.textContent = '✓';
+              waHasMatch = true;
+              activeProcessesSet.add(pId);
+            }
+
+            tdCell.onclick = () => {
+              const key = `${cuIdx}_${waIdx}`;
+              if (!matrixState[key]) matrixState[key] = {};
+              matrixState[key][pId] = !matrixState[key][pId];
+              renderTable();
+              recalculateCapacity();
+            };
+            waRow.appendChild(tdCell);
+          }
+
+          if (waHasMatch) {
+            waRow.classList.add('wa-row-highlight');
+            matchedWA++;
+          }
+          tbody.appendChild(waRow);
+        });
+      }
+
+      globalRowIndex++;
+    });
+
+    for (let p = 1; p <= activeMaxColumns; p++) {
+      const pId = 'P' + String(p).padStart(2, '0');
+      const hCell = document.getElementById(`header_cell_${pId}`);
+      const hCode = document.getElementById(`header_code_${pId}`);
+
+      if (activeProcessesSet.has(pId)) {
+        if (hCell) hCell.classList.add('active-header');
+        if (hCode) hCode.classList.add('active-code');
+      } else {
+        if (hCell) hCell.classList.remove('active-header');
+        if (hCode) hCode.classList.remove('active-code');
+      }
+    }
+
+    document.getElementById('matchedCUCount').textContent = `${matchedCU} / ${totalCU}`;
+    document.getElementById('matchedWACount').textContent = `${matchedWA} / ${totalWA}`;
+    document.getElementById('matchedPKCount').textContent = `${activeProcessesSet.size} / ${activeMaxColumns}`;
+  }
+
+  function toggleCuCollapse(cuIdx) { cuCollapsedState[cuIdx] = !cuCollapsedState[cuIdx]; renderTable(); }
+  function toggleCollapseAll() {
+    isAllCollapsed = !isAllCollapsed;
+    const prog = programDatabase[currentProgramKey];
+    if (prog) {
+      const filteredCUs = getFilteredCUs(prog);
+      filteredCUs.forEach((_, cuIdx) => { cuCollapsedState[cuIdx] = isAllCollapsed; });
+    }
+    document.getElementById('collapseBtnText').textContent = isAllCollapsed ? 'Expand Semua CU' : 'Collapse Semua CU';
+    renderTable();
+  }
+
+  function renderEquipmentTable() {
+    const tbody = document.getElementById('equipmentBody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    if (equipmentList.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" style="padding: 20px; color: #64748b; font-style: italic;">Tiada peralatan. Sila muat naik fail Excel atau tekan + Tambah Peralatan.</td></tr>`;
+      return;
+    }
+
+    equipmentList.forEach((eq, idx) => {
+      const tr = document.createElement('tr');
+
+      const tdBil = document.createElement('td');
+      tdBil.innerHTML = `
+        <div style="display:flex; justify-content:center; align-items:center; gap:6px;">
+          <span class="trash-icon" onclick="removeEquipmentRow(${idx})" title="Padam Alat">🗑️</span>
+          <span>${idx + 1}</span>
+        </div>
+      `;
+      tr.appendChild(tdBil);
+
+      const tdAlat = document.createElement('td');
+      tdAlat.innerHTML = `<input type="text" value="${eq.alat || ''}" onchange="equipmentList[${idx}].alat = this.value; recalculateCapacity();" placeholder="Nama peralatan/bahan...">`;
+      tr.appendChild(tdAlat);
+
+      const tdQty = document.createElement('td');
+      tdQty.innerHTML = `<input type="number" value="${eq.qty || '1'}" onchange="equipmentList[${idx}].qty = this.value; recalculateCapacity();" style="width:50px;">`;
+      tr.appendChild(tdQty);
+
+      const tdNisbah = document.createElement('td');
+      const selectedNisbah = eq.nisbah ? String(eq.nisbah).toUpperCase() : '1:1';
+      tdNisbah.innerHTML = `
+        <select class="select-nisbah" onchange="equipmentList[${idx}].nisbah = this.value; recalculateCapacity();">
+          <option value="1:1" ${selectedNisbah === '1:1' ? 'selected' : ''}>1:1</option>
+          <option value="1:2" ${selectedNisbah === '1:2' ? 'selected' : ''}>1:2</option>
+          <option value="1:5" ${selectedNisbah === '1:5' ? 'selected' : ''}>1:5</option>
+          <option value="1:10" ${selectedNisbah === '1:10' ? 'selected' : ''}>1:10</option>
+          <option value="1:25" ${selectedNisbah === '1:25' ? 'selected' : ''}>1:25</option>
+          <option value="MK" ${selectedNisbah === 'MK' ? 'selected' : ''}>MK</option>
+        </select>
+      `;
+      tr.appendChild(tdNisbah);
+
+      const tdStesen = document.createElement('td');
+      tdStesen.innerHTML = `<input type="text" value="${eq.stesen || 'A'}" onchange="equipmentList[${idx}].stesen = this.value; recalculateCapacity();" placeholder="Cth: Loji Gegas, Makmal...">`;
+      tr.appendChild(tdStesen);
+
+      const tdPK = document.createElement('td');
+      let selectedPKs = [];
+      if (Array.isArray(eq.pkList)) selectedPKs = eq.pkList;
+      else if (typeof eq.pk === 'string') selectedPKs = eq.pk.split(',').map(s => s.trim()).filter(s => s);
+
+      let badgesHTML = '';
+      if (selectedPKs.length > 0) {
+        selectedPKs.forEach(code => {
+          let cleanCode = code.split(' ')[0];
+          badgesHTML += `<span class="pk-badge">${cleanCode}</span>`;
+        });
+      } else {
+        badgesHTML = `<span style="color: #94a3b8; font-style: italic; font-size: 11px;">+ Pilih PK</span>`;
+      }
+
+      tdPK.innerHTML = `<div class="pk-trigger-box" onclick="openPKModal(${idx})">${badgesHTML}</div>`;
+      tr.appendChild(tdPK);
+
+      tbody.appendChild(tr);
+    });
+  }
+
+  function toggleCapacityTable() {
+    const wrapper = document.getElementById('capacityTableWrapper');
+    const btnText = document.getElementById('toggleTableBtnText');
+    if (!wrapper || !btnText) return;
+    if (wrapper.style.display === 'none') {
+      wrapper.style.display = 'block';
+      btnText.textContent = 'Sembunyi Perincian Peralatan (Jadual)';
+    } else {
+      wrapper.style.display = 'none';
+      btnText.textContent = 'Papar Perincian Peralatan (Jadual)';
+    }
+  }
+
+  function toggleStationItems(stationKey) {
+    stationExpandedState[stationKey] = !stationExpandedState[stationKey];
+    recalculateCapacity();
+  }
+
+  function getStationCuWaMap(pkSet) {
+    const prog = programDatabase[currentProgramKey];
+    if (!prog || !prog.cus || pkSet.size === 0) return {};
+
+    let stationCuWaMap = {};
+    const filteredCUs = getFilteredCUs(prog);
+
+    filteredCUs.forEach((cu, cuIdx) => {
+      let match = cu.code.match(/(C\d+|E\d+)/i);
+      let shortCu = match ? match[1].toUpperCase() : cu.code;
+
+      if (cu.was) {
+        cu.was.forEach((_, waIdx) => {
+          let rowMap = matrixState[`${cuIdx}_${waIdx}`];
+          if (rowMap) {
+            pkSet.forEach(pk => {
+              if (rowMap[pk]) {
+                if (!stationCuWaMap[shortCu]) {
+                  stationCuWaMap[shortCu] = new Set();
+                }
+                stationCuWaMap[shortCu].add(`WA${waIdx + 1}`);
+              }
+            });
+          }
+        });
+      }
+    });
+
+    return stationCuWaMap;
+  }
+
+  function recalculateCapacity() {
+    const tbody = document.getElementById('capacityTableBody');
+    const grid = document.getElementById('stationDashboardGrid');
+    const dispStations = document.getElementById('dispTotalStations');
+    const dispGrandCap = document.getElementById('dispGrandCapacity');
+
+    if (!tbody || !grid) return;
+    tbody.innerHTML = '';
+    grid.innerHTML = '';
+
+    if (equipmentList.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" style="padding: 20px; color: #64748b; font-style: italic;">Tiada peralatan untuk pengiraan kapasiti. Sila tambah di Tab 2.</td></tr>`;
+      grid.innerHTML = `<div style="grid-column: 1 / -1; color:#64748b; font-style:italic; padding:20px; text-align:center; background:#fff; border:1px dashed #cbd5e1; border-radius:8px;">Tiada data stesen kerja. Sila muat naik fail Excel atau masukkan peralatan di Tab 2.</div>`;
+      if (dispStations) dispStations.textContent = '0';
+      if (dispGrandCap) dispGrandCap.textContent = '0 Orang';
+      return;
+    }
+
+    const coachCap = parseInt(document.getElementById('coachRatioCap') ? document.getElementById('coachRatioCap').value : 5);
+    let stesenMap = {};
+
+    equipmentList.forEach((eq, idx) => {
+      const tr = document.createElement('tr');
+      const qty = parseInt(eq.qty) || 0;
+      let ratioVal = 1;
+      let isMK = false;
+
+      let nisbahStr = (eq.nisbah || '1:1').toUpperCase();
+      if (nisbahStr === 'MK') {
+        isMK = true;
+      } else if (nisbahStr.includes(':')) {
+        ratioVal = parseInt(nisbahStr.split(':')[1]) || 1;
+      }
+
+      let effectiveRatio = Math.min(ratioVal, coachCap);
+      let itemCapNum = isMK ? Infinity : (qty * effectiveRatio);
+      let maxCapacityStr = isMK ? "Mengikut Keperluan (MK)" : itemCapNum + " Pelajar";
+
+      let stesenName = (eq.stesen || 'A').trim();
+
+      if (!stesenMap[stesenName]) {
+        stesenMap[stesenName] = { items: [], pkSet: new Set() };
+      }
+
+      let itemPKs = Array.isArray(eq.pkList) ? eq.pkList : (eq.pk ? eq.pk.match(/P\d+/gi) || [] : []);
+      itemPKs.forEach(p => stesenMap[stesenName].pkSet.add(p.toUpperCase()));
+
+      stesenMap[stesenName].items.push({
+        alat: eq.alat || 'Peralatan Tanpa Nama',
+        qty: qty,
+        ratioVal: ratioVal,
+        effectiveRatio: effectiveRatio,
+        isMK: isMK,
+        capNum: itemCapNum,
+        nisbahStr: nisbahStr
+      });
+
+      tr.innerHTML = `
+        <td class="col-bil">${idx + 1}</td>
+        <td style="text-align:left; padding-left:8px;">${eq.alat || '-'}</td>
+        <td>${qty}</td>
+        <td><strong>${nisbahStr}</strong> ${ratioVal > coachCap && !isMK ? `<span style="color:#d97706; font-size:10px;">(Had 1:${coachCap})</span>` : ''}</td>
+        <td>${stesenName}</td>
+        <td style="font-weight:bold; color:#0284c7;">${maxCapacityStr}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    let totalFacilityCapacity = 0;
+    let stationKeys = Object.keys(stesenMap);
+
+    stationKeys.forEach((stName) => {
+      let stObj = stesenMap[stName];
+      let items = stObj.items;
+      let minCap = Infinity;
+      let bottleneckItem = "-";
+
+      items.forEach(it => {
+        if (!it.isMK && it.capNum < minCap) {
+          minCap = it.capNum;
+          bottleneckItem = it.alat;
+        }
+      });
+
+      let displayMinCap = (minCap === Infinity) ? "MK" : minCap;
+      if (minCap !== Infinity) {
+        totalFacilityCapacity += minCap;
+      }
+
+      // Lencana CU berserta Tooltip WA Terlibat
+      let cuWaMap = getStationCuWaMap(stObj.pkSet);
+      let badgesHtml = '';
+      Object.keys(cuWaMap).forEach(cuCode => {
+        let waStr = Array.from(cuWaMap[cuCode]).sort().join(', ');
+        badgesHtml += `<span class="cu-badge-tooltip" data-tooltip="${waStr}">${cuCode}</span>`;
+      });
+
+      let isExpanded = !!stationExpandedState[stName];
+      let hasMore = items.length > 3;
+
+      let rowsHtml = '';
+      items.forEach((it, iIdx) => {
+        let isBottleneck = (!it.isMK && it.capNum === minCap);
+        let capText = it.isMK ? "MK" : `${it.capNum} Org`;
+        let isHiddenRow = (!isExpanded && iIdx >= 3);
+
+        rowsHtml += `
+          <tr class="${isBottleneck ? 'bottleneck-highlight' : ''}" style="${isHiddenRow ? 'display:none;' : ''}">
+            <td style="text-align:left; font-weight:${isBottleneck ? 'bold' : 'normal'};">${it.alat}</td>
+            <td class="col-num">${it.qty}</td>
+            <td class="col-num">${it.nisbahStr}</td>
+            <td class="col-num"><strong>${capText}</strong></td>
+          </tr>
+        `;
+      });
+
+      let expandToggleHtml = '';
+      if (hasMore) {
+        let remainingCount = items.length - 3;
+        expandToggleHtml = `
+          <div style="text-align:left; margin-top:2px;">
+            <button class="btn-expand-station" onclick="toggleStationItems('${stName}')">
+              ${isExpanded ? '▲ Sembunyi baki alat' : `▼ + Lihat ${remainingCount} lagi alat...`}
+            </button>
+          </div>
+        `;
+      }
+
+      let displayStationTitle = stName;
+      if (/^[A-Z0-9]{1,2}$/i.test(stName)) {
+        displayStationTitle = "Stesen " + stName.toUpperCase();
+      }
+
+      const card = document.createElement('div');
+      card.className = 'station-card';
+      card.innerHTML = `
+        <div>
+          <div class="station-card-top">
+            <span class="station-title">${displayStationTitle}</span>
+            <div class="station-cu-badges">${badgesHtml}</div>
+          </div>
+          <table class="station-table">
+            <thead>
+              <tr>
+                <th style="width:55%;">Peralatan</th>
+                <th class="col-num" style="width:15%;">Qty</th>
+                <th class="col-num" style="width:15%;">Nisbah</th>
+                <th class="col-num" style="width:15%;">Kapasiti</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHtml}
+            </tbody>
+          </table>
+          ${expandToggleHtml}
+        </div>
+
+        <div>
+          <div class="station-min-card">
+            <div>
+              <div class="min-title">KAPASITI STESEN (MIN)</div>
+              <div class="min-sub">Had Terkecil: <strong>${bottleneckItem}</strong></div>
+            </div>
+            <div class="min-val">${displayMinCap} <span style="font-size:12px; font-weight:normal; color:#78350f;">${displayMinCap !== 'MK' ? 'Orang' : ''}</span></div>
+          </div>
+
+          <!-- Kotak Kosong Kapasiti Sebenar Kad Stesen (Catatan Penilai) -->
+          <div class="station-actual-card">
+            <div class="actual-title">KAPASITI SEBENAR (mengambil kira ruang munasabah)</div>
+            <div class="actual-box-empty"></div>
+          </div>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+
+    if (dispStations) dispStations.textContent = stationKeys.length;
+    if (dispGrandCap) dispGrandCap.textContent = `${totalFacilityCapacity} Orang`;
+  }
+
+  function openPKModal(index) {
+    currentEditingEqIndex = index;
+    const eq = equipmentList[index];
+
+    let selectedPKs = [];
+    if (Array.isArray(eq.pkList)) selectedPKs = eq.pkList;
+    else if (typeof eq.pk === 'string') selectedPKs = eq.pk.split(',').map(s => s.trim());
+
+    const container = document.getElementById('modalPKOptionsList');
+    container.innerHTML = '';
+
+    for (let p = 1; p <= activeMaxColumns; p++) {
+      let pCode = 'P' + String(p).padStart(2, '0');
+      let rawTitle = processTitles[pCode] || pCode;
+      let cleanTitle = rawTitle.replace(/^P\d+\s*[-–:]\s*/i, '');
+      let isChecked = selectedPKs.includes(pCode) || selectedPKs.some(s => s.startsWith(pCode));
+
+      const itemDiv = document.createElement('label');
+      itemDiv.className = 'pk-option-item';
+      itemDiv.innerHTML = `
+        <input type="checkbox" value="${pCode}" ${isChecked ? 'checked' : ''}>
+        <div><strong style="color:#1d4ed8;">${pCode}</strong> - ${cleanTitle}</div>
+      `;
+      container.appendChild(itemDiv);
+    }
+    document.getElementById('pkModal').style.display = 'flex';
+  }
+
+  function savePKModalSelection() {
+    if (currentEditingEqIndex < 0) return;
+    const checkboxes = document.querySelectorAll('#modalPKOptionsList input[type="checkbox"]:checked');
+    const selected = Array.from(checkboxes).map(cb => cb.value);
+    equipmentList[currentEditingEqIndex].pkList = selected;
+    equipmentList[currentEditingEqIndex].pk = selected.join(', ');
+    closePKModal();
+    renderEquipmentTable();
+    recalculateCapacity();
+  }
+
+  function closePKModal() { document.getElementById('pkModal').style.display = 'none'; currentEditingEqIndex = -1; }
+  function addEquipmentRow() { equipmentList.push({ alat: '', qty: '1', nisbah: '1:1', stesen: 'A', pkList: [] }); renderEquipmentTable(); recalculateCapacity(); }
+  function removeEquipmentRow(idx) { equipmentList.splice(idx, 1); renderEquipmentTable(); recalculateCapacity(); }
+
+  function downloadTemplate() {
+    if (customTemplateDownloadUrl && customTemplateDownloadUrl.trim() !== "" && !customTemplateDownloadUrl.includes("YOUR_FILE_ID")) {
+      window.open(customTemplateDownloadUrl, '_blank');
+      return;
+    }
+
+    try {
+      const wb = XLSX.utils.book_new();
+
+      const kodData = [
+        { "Kod": "P01", "Nama Proses Kerja": "Penyediaan Dokumentasi Kimpalan (WPS / PQR / MTO)" },
+        { "Kod": "P02", "Nama Proses Kerja": "Perolehan & Pengurusan Bahan / Bahan Luak Kimpalan" },
+        { "Kod": "P03", "Nama Proses Kerja": "Perancangan & Penjadualan Operasi Kimpalan" },
+        { "Kod": "P04", "Nama Proses Kerja": "Penyeliaan Pelaksanaan & Operasi Kimpalan Bengkel" },
+        { "Kod": "P05", "Nama Proses Kerja": "Penyelarasan Pemeriksaan & Ujian Kimpalan (NDT / DT)" },
+        { "Kod": "P06", "Nama Proses Kerja": "Pengurusan Rekod & Dokumentasi Laporan Kimpalan" },
+        { "Kod": "P07", "Nama Proses Kerja": "Pelaksanaan & Pemantauan Keselamatan Bengkel (EHS)" }
+      ];
+      const wsKod = XLSX.utils.json_to_sheet(kodData);
+      XLSX.utils.book_append_sheet(wb, wsKod, "Kod");
+
+      const pspkData = [
+        { "Peralatan": "Set Komputer / Laptop (CAD / WPS)", "Kuantiti": 5, "Nisbah": "1:1", "Proses Kerja": "P01, P03, P06", "Stesen Kerja": "A" },
+        { "Peralatan": "Mesin Kimpalan Multi-Process", "Kuantiti": 6, "Nisbah": "1:2", "Proses Kerja": "P04", "Stesen Kerja": "A" },
+        { "Peralatan": "Portable Electrode Oven", "Kuantiti": 2, "Nisbah": "1:5", "Proses Kerja": "P02, P04", "Stesen Kerja": "B" },
+        { "Peralatan": "Jaket & Sarung Tangan Kulit", "Kuantiti": 10, "Nisbah": "MK", "Proses Kerja": "P04, P07", "Stesen Kerja": "B" }
+      ];
+      const wsPSPK = XLSX.utils.json_to_sheet(pspkData);
+      XLSX.utils.book_append_sheet(wb, wsPSPK, "PSPK");
+
+      XLSX.writeFile(wb, "Templat_NOSS_Penyelarasan.xlsx");
+    } catch (e) {
+      alert("Gagal menjana templat: " + e.message);
+    }
+  }
+
+  function handleFileSelect(evt) { const file = evt.target.files[0]; if (file) processExcelFile(file); }
+  function setupDragAndDrop() {
+    const dropZone = document.getElementById('dropZone');
+    if (!dropZone) return;
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eName => dropZone.addEventListener(eName, e => { e.preventDefault(); e.stopPropagation(); }, false));
+    ['dragenter', 'dragover'].forEach(eName => dropZone.addEventListener(eName, () => dropZone.classList.add('dragover'), false));
+    ['dragleave', 'drop'].forEach(eName => dropZone.addEventListener(eName, () => dropZone.classList.remove('dragover'), false));
+    dropZone.addEventListener('drop', e => { const file = e.dataTransfer.files[0]; if (file) processExcelFile(file); }, false);
+  }
+
+  function processExcelFile(file) {
+    document.getElementById('dropZoneText').textContent = `Memproses: ${file.name}...`;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        
+        const kodSheetName = workbook.SheetNames.find(s => s.trim().toLowerCase() === 'kod');
+        if (kodSheetName) {
+          const sheetKod = workbook.Sheets[kodSheetName];
+          const jsonKod = XLSX.utils.sheet_to_json(sheetKod);
+          processTitles = {}; 
+          let count = 0;
+
+          jsonKod.forEach(row => {
+            if (!row) return;
+            const keys = Object.keys(row);
+            const kodKey = keys.find(k => k.trim().toLowerCase() === 'kod');
+            const namaKey = keys.find(k => k.trim().toLowerCase().includes('nama'));
+
+            const kod = kodKey ? String(row[kodKey]).trim() : '';
+            const nama = namaKey ? String(row[namaKey]).trim() : '';
+
+            if (kod && nama) { 
+              processTitles[kod.toUpperCase()] = nama; 
+              count++; 
+            }
+          });
+          if (count > 0) activeMaxColumns = count;
+        }
+
+        const pspkSheetName = workbook.SheetNames.find(s => s.trim().toLowerCase() === 'pspk');
+        if (pspkSheetName) {
+          const sheetPSPK = workbook.Sheets[pspkSheetName];
+          const jsonPSPK = XLSX.utils.sheet_to_json(sheetPSPK);
+          
+          equipmentList = jsonPSPK.map(row => {
+            if (!row) return null;
+            const keys = Object.keys(row);
+
+            const pkKey = keys.find(k => k.trim().toLowerCase().includes('proses'));
+            const alatKey = keys.find(k => k.trim().toLowerCase().includes('alat') || k.trim().toLowerCase().includes('peralatan'));
+            const qtyKey = keys.find(k => k.trim().toLowerCase().includes('kuantiti') || k.trim().toLowerCase().includes('qty'));
+            const nisbahKey = keys.find(k => k.trim().toLowerCase().includes('nisbah'));
+            const stesenKey = keys.find(k => k.trim().toLowerCase().includes('stesen'));
+
+            let rawPK = pkKey ? String(row[pkKey] || '').trim() : '';
+            let pkArr = rawPK.match(/P\d+/gi) || [];
+            pkArr = pkArr.map(p => p.toUpperCase());
+
+            let rawAlat = alatKey ? String(row[alatKey] || '').trim() : '';
+            let rawQty = qtyKey ? String(row[qtyKey] || '1').trim() : '1';
+            let rawNisbah = nisbahKey ? String(row[nisbahKey] || '1:1').trim() : '1:1';
+            let rawStesen = stesenKey ? String(row[stesenKey] || 'A').trim() : 'A';
+
+            return { 
+              pk: pkArr.join(', '), 
+              pkList: pkArr, 
+              alat: rawAlat, 
+              qty: rawQty, 
+              nisbah: rawNisbah,
+              stesen: rawStesen || 'A'
+            };
+          }).filter(item => item && item.alat !== '');
+        }
+        
+        renderHeaders(); 
+        renderTable(); 
+        renderEquipmentTable(); 
+        recalculateCapacity();
+        
+        document.getElementById('dropZoneText').textContent = `Dimuat naik: ${file.name}`;
+      } catch (err) {
+        console.error("Excel Parsing Error:", err);
+        alert("Gagal membaca fail Excel: " + err.message);
+        document.getElementById('dropZoneText').textContent = "Heret & Lepas Fail Excel Sini Atau Klik Untuk Muat Naik";
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  function switchTab(evt, tabId) {
+    if (evt && evt.preventDefault) evt.preventDefault();
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    
+    if (evt && evt.currentTarget) {
+      evt.currentTarget.classList.add('active');
+    } else {
+      let btn = document.getElementById('btn' + tabId.charAt(0).toUpperCase() + tabId.slice(1));
+      if (btn) btn.classList.add('active');
+    }
+
+    let targetTab = document.getElementById(tabId);
+    if (targetTab) targetTab.classList.add('active');
+    if (tabId === 'tab3') recalculateCapacity();
+  }
+
+  window.onload = function() { loadDataFromAppsScript(); setupDragAndDrop(); updatePrintFooter(); };
+</script>
+</body>
+</html>
