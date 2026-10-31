@@ -595,7 +595,7 @@
 
   function loadDataFromAppsScript() {
   // Tetapan URL API melalui Proksi Netlify (mengelakkan sekatan CORS)
-  const apiUrl = '/api/noss';
+  const apiUrl = '"https://script.google.com/macros/s/AKfycbyhpqwlzs3SopGhZcqy525nBHalfCg9nbvKSRygrdpAZ5DNvvEbfjBanrnSWieNar8V/exec?action=getData";
 
   fetch(apiUrl)
     .then(response => {
