@@ -594,15 +594,39 @@
   }
 
   function loadDataFromAppsScript() {
-    if (typeof google !== 'undefined' && google.script && google.script.run) {
-      google.script.run.withSuccessHandler(function(data) {
-        if (data) {
-          programDatabase = data;
-          setupSearchDatalist();
-        }
-      }).getProgramData();
-    }
-  }
+  // Tetapan URL API melalui Proksi Netlify (mengelakkan sekatan CORS)
+  const apiUrl = '/api/noss';
+
+  fetch(apiUrl)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error("HTTP error! Status: " + response.status);
+      }
+      return response.json();
+    })
+    .then(data => {
+      if (data && typeof data === 'object') {
+        programDatabase = data;
+        setupSearchDatalist();
+        console.log("Pangkalan data NOSS berjaya dimuat:", Object.keys(data).length, "program.");
+      }
+    })
+    .catch(err => {
+      console.warn("Cubaan proksi gagal, mencuba sambungan terus...", err);
+      // Fallback: Sambungan terus jika dijalankan di luar persekitaran Netlify
+      fetch("https://script.google.com/macros/s/AKfycbyhpqwlzs3SopGhZcqy525nBHalfCg9nbvKSRygrdpAZ5DNvvEbfjBanrnSWieNar8V/exec")
+        .then(res => res.json())
+        .then(directData => {
+          if (directData) {
+            programDatabase = directData;
+            setupSearchDatalist();
+          }
+        })
+        .catch(directErr => {
+          console.error("Gagal memuat turun data program:", directErr);
+        });
+    });
+}
 
   function setupSearchDatalist() {
     const datalist = document.getElementById('programDatalist');
