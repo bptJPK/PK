@@ -573,6 +573,16 @@
 
   let stationExpandedState = {};
 
+  // KEMAS KINI: Fungsi selaras format Proses Kerja (P1 -> P01)
+  function normalizePK(str) {
+    if (!str) return '';
+    let m = String(str).match(/(\d+)/);
+    if (m) {
+      return 'P' + String(m[1]).padStart(2, '0');
+    }
+    return String(str).trim().toUpperCase();
+  }
+
   function openPBSettingsModal() {
     document.getElementById('pbSettingsModal').style.display = 'flex';
   }
@@ -594,7 +604,6 @@
   }
 
   function loadDataFromAppsScript() {
-    // 1. Panggil melalui proxy Netlify portal utama
     fetch('/api/noss')
       .then(response => {
         if (!response.ok) {
@@ -611,8 +620,6 @@
       })
       .catch(err => {
         console.warn("Proxy Netlify gagal, mencoba akses Google Script langsung...", err);
-  
-        // 2. Fallback: Panggilan langsung WAJIB menyertakan ?action=getData
         const directUrl = "https://script.google.com/macros/s/AKfycbyhpqwlzs3SopGhZcqy525nBHalfCg9nbvKSRygrdpAZ5DNvvEbfjBanrnSWieNar8V/exec?action=getData";
   
         fetch(directUrl)
@@ -1044,12 +1051,19 @@
     recalculateCapacity();
   }
 
+  // KEMAS KINI: Fungsi diselaraskan untuk mengesan PK dengan padanan format standard
   function getStationCuWaMap(pkSet) {
     const prog = programDatabase[currentProgramKey];
-    if (!prog || !prog.cus || pkSet.size === 0) return {};
+    if (!prog || !prog.cus || !pkSet || pkSet.size === 0) return {};
 
     let stationCuWaMap = {};
     const filteredCUs = getFilteredCUs(prog);
+
+    let normalizedPkSet = new Set();
+    pkSet.forEach(pk => {
+      let norm = normalizePK(pk);
+      if (norm) normalizedPkSet.add(norm);
+    });
 
     filteredCUs.forEach((cu, cuIdx) => {
       let match = cu.code.match(/(C\d+|E\d+)/i);
@@ -1059,7 +1073,7 @@
         cu.was.forEach((_, waIdx) => {
           let rowMap = matrixState[`${cuIdx}_${waIdx}`];
           if (rowMap) {
-            pkSet.forEach(pk => {
+            normalizedPkSet.forEach(pk => {
               if (rowMap[pk]) {
                 if (!stationCuWaMap[shortCu]) {
                   stationCuWaMap[shortCu] = new Set();
@@ -1164,11 +1178,16 @@
         totalFacilityCapacity += minCap;
       }
 
-      // Lencana CU berserta Tooltip WA Terlibat
+      // KEMAS KINI: Lencana CU berserta Tooltip WA Terlibat disusun mengikut Abjad/Nombor
       let cuWaMap = getStationCuWaMap(stObj.pkSet);
       let badgesHtml = '';
-      Object.keys(cuWaMap).forEach(cuCode => {
-        let waStr = Array.from(cuWaMap[cuCode]).sort().join(', ');
+      Object.keys(cuWaMap).sort().forEach(cuCode => {
+        let waList = Array.from(cuWaMap[cuCode]).sort((a, b) => {
+          let numA = parseInt(a.replace(/\D/g, '')) || 0;
+          let numB = parseInt(b.replace(/\D/g, '')) || 0;
+          return numA - numB;
+        });
+        let waStr = waList.join(', ');
         badgesHtml += `<span class="cu-badge-tooltip" data-tooltip="${waStr}">${cuCode}</span>`;
       });
 
@@ -1391,9 +1410,10 @@
             const nisbahKey = keys.find(k => k.trim().toLowerCase().includes('nisbah'));
             const stesenKey = keys.find(k => k.trim().toLowerCase().includes('stesen'));
 
+            // KEMAS KINI: Memastikan data PK terus diselaras (Cth: P1 -> P01) ketika Excel dibaca
             let rawPK = pkKey ? String(row[pkKey] || '').trim() : '';
-            let pkArr = rawPK.match(/P\d+/gi) || [];
-            pkArr = pkArr.map(p => p.toUpperCase());
+            let pkArr = rawPK.match(/P?\d+/gi) || [];
+            pkArr = Array.from(new Set(pkArr.map(normalizePK).filter(Boolean)));
 
             let rawAlat = alatKey ? String(row[alatKey] || '').trim() : '';
             let rawQty = qtyKey ? String(row[qtyKey] || '1').trim() : '1';
