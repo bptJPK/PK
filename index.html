@@ -41,7 +41,7 @@
     .elective-badge-active { background-color: #fef3c7; color: #b45309; border: 1px solid #fde68a; font-weight: 800; }
     .elective-badge-dim { background-color: #f1f5f9; color: #94a3b8; border: 1px solid #cbd5e1; font-weight: 600; opacity: 0.6; }
 
-    /* Modal Overlay & Styling (Pastikan disorokkan secara lalai dan terapung bila dibuka) */
+    /* Modal Overlay & Styling */
     .modal-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(2px);
@@ -349,9 +349,10 @@
       <datalist id="programDatalist"></datalist>
     </div>
     
-    <div class="info-item" style="flex:1; min-width: 180px;">
+    <!-- PEMBETULAN #3: Ruang Nama Program dilebarkan (flex: 2, min-width: 350px) -->
+    <div class="info-item" style="flex: 2; min-width: 350px;">
       <span class="info-label">Nama Program:</span>
-      <span class="info-value" id="progName">Sila pilih program...</span>
+      <span class="info-value" id="progName" style="max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Nama penuh akan terpapar bila cursor diletakkan di sini">Sila pilih program...</span>
     </div>
     
     <div class="info-item">
@@ -371,9 +372,10 @@
       <span>Elektif</span>
     </label>
 
+    <!-- PEMBETULAN #1: Tukar Teks "Heret & Lepas Fail..." -->
     <div id="dropZone" class="drop-zone-large" onclick="document.getElementById('excelFileInput').click()">
       <span style="font-size: 16px;">☁️</span>
-      <span id="dropZoneText">Heret & Lepas Fail Excel Sini Atau Klik Untuk Muat Naik</span>
+      <span id="dropZoneText">Heret & Lepas Fail / Klik Untuk Muat Naik</span>
       <input type="file" id="excelFileInput" accept=".xlsx, .xls, .xlsm" style="display: none;" onchange="handleFileSelect(event)">
     </div>
 
@@ -392,7 +394,8 @@
     <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
       <button class="btn btn-outline" onclick="addProcessColumn()"><span>➕</span> Proses Kerja</button>
       <button class="btn btn-outline" onclick="addEquipmentRow()"><span>➕</span> Peralatan</button>
-      <button class="btn btn-outline" onclick="toggleCollapseAll()"><span>📁</span> <span id="collapseBtnText">Collapse CU</span></button>
+      <!-- PEMBETULAN #2: Tukar teks butang ke Sembunyi / Papar CU -->
+      <button class="btn btn-outline" onclick="toggleCollapseAll()"><span>📁</span> <span id="collapseBtnText">Sembunyi Semua CU</span></button>
       <button class="btn btn-outline" style="background:#fef3c7; border-color:#f59e0b;" onclick="recalculateCapacity()"><span>⚡</span> Kira Semula Kapasiti</button>
       <button class="btn btn-outline" style="background:#f1f5f9; border-color:#94a3b8;" onclick="openPBSettingsModal()"><span>🏛️</span> Maklumat PB</button>
     </div>
@@ -429,7 +432,8 @@
           <tr class="header-row-1">
             <th class="col-bil eq-header">BIL</th>
             <th class="eq-header" style="width: 320px;">NAMA ALAT / KELENGKAPAN / BAHAN</th>
-            <th class="eq-header" style="width: 60px;">QTY</th>
+            <!-- PEMBETULAN #4: Tukar QTY kepada KUANTITI -->
+            <th class="eq-header" style="width: 75px;">KUANTITI</th>
             <th class="eq-header" style="width: 90px;">NISBAH</th>
             <th class="eq-header" style="width: 130px;">STESEN KERJA</th>
             <th class="eq-header" style="width: 280px;">PROSES KERJA TERKAIT</th>
@@ -442,7 +446,8 @@
     <!-- Legenda Laporan Tab 2 -->
     <div class="report-legend-box">
       <span><strong>Nota / Legenda:</strong></span>
-      <span>• <strong>QTY</strong> = Kuantiti Alat</span>
+      <!-- PEMBETULAN #4: Tukar QTY kepada KUANTITI -->
+      <span>• <strong>KUANTITI</strong> = Kuantiti Alat</span>
       <span>• <strong>MK</strong> = Mengikut Keperluan</span>
     </div>
   </div>
@@ -456,12 +461,13 @@
 
       <div class="facility-stats-row">
         <div style="background:#f8fafc; border:1px solid #cbd5e1; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:600;">
-          <span style="color:#475569;">Nisbah Coach : Perantis (Cap):</span>
+          <!-- PEMBETULAN #5: Kemas kini label & dropdown Had Nisbah -->
+          <span style="color:#475569;">Had Nisbah Coach : Perantis :</span>
           <select id="coachRatioCap" onchange="recalculateCapacity()" style="margin-left:6px; padding:2px 6px; font-weight:bold; border-radius:4px; border:1px solid #94a3b8;">
-            <option value="1">1:1</option>
-            <option value="2">1:2</option>
             <option value="5" selected>1:5 (Lalai)</option>
+            <option value="8">1:8</option>
             <option value="10">1:10</option>
+            <option value="15">1:15</option>
             <option value="25">1:25</option>
           </select>
         </div>
@@ -471,13 +477,11 @@
           <div class="stat-value" id="dispTotalStations">0</div>
         </div>
 
-        <!-- Ditukar ke KAPASITI (TEORI) -->
         <div class="stat-sum-box">
           <div class="stat-label">Kapasiti (Teori)</div>
           <div class="stat-value" id="dispGrandCapacity">0 Orang</div>
         </div>
 
-        <!-- Kotak Kosong Kapasiti Sebenar -->
         <div class="stat-actual-box">
           <div class="stat-label">Kapasiti Sebenar</div>
           <div style="height: 24px; border-bottom: 2px solid #cbd5e1; margin-top: auto;"></div>
@@ -501,10 +505,11 @@
           <tr class="header-row-1">
             <th class="col-bil eq-header" style="background:#0284c7 !important;">BIL</th>
             <th class="eq-header" style="background:#0284c7 !important; width: 280px;">NAMA ALAT / KELENGKAPAN</th>
-            <th class="eq-header" style="background:#0284c7 !important; width: 70px;">QTY</th>
+            <!-- PEMBETULAN #6: Tukar "QTY" dan "KAPASITI MAX (PELAJAR)" dalam jadual ini -->
+            <th class="eq-header" style="background:#0284c7 !important; width: 70px;">KUANTITI</th>
             <th class="eq-header" style="background:#0284c7 !important; width: 110px;">NISBAH ITEM</th>
             <th class="eq-header" style="background:#0284c7 !important; width: 120px;">STESEN KERJA</th>
-            <th class="eq-header" style="background:#0284c7 !important; width: 150px;">KAPASITI MAX (PELAJAR)</th>
+            <th class="eq-header" style="background:#0284c7 !important; width: 150px;">KAPASITI MAKS (PERANTIS)</th>
           </tr>
         </thead>
         <tbody id="capacityTableBody"></tbody>
@@ -573,7 +578,7 @@
 
   let stationExpandedState = {};
 
-  // KEMAS KINI: Fungsi selaras format Proses Kerja (P1 -> P01)
+  // KEMAS KINI ASAS: Fungsi selaras format Proses Kerja (P1 -> P01)
   function normalizePK(str) {
     if (!str) return '';
     let m = String(str).match(/(\d+)/);
@@ -959,7 +964,8 @@
       const filteredCUs = getFilteredCUs(prog);
       filteredCUs.forEach((_, cuIdx) => { cuCollapsedState[cuIdx] = isAllCollapsed; });
     }
-    document.getElementById('collapseBtnText').textContent = isAllCollapsed ? 'Expand Semua CU' : 'Collapse Semua CU';
+    // PEMBETULAN #2: Tukar teks dari Collapse/Expand ke Sembunyi/Papar
+    document.getElementById('collapseBtnText').textContent = isAllCollapsed ? 'Papar Semua CU' : 'Sembunyi Semua CU';
     renderTable();
   }
 
@@ -1051,7 +1057,7 @@
     recalculateCapacity();
   }
 
-  // KEMAS KINI: Fungsi diselaraskan untuk mengesan PK dengan padanan format standard
+  // KEMAS KINI ASAS: Fungsi diselaraskan untuk mengesan PK dengan padanan format standard
   function getStationCuWaMap(pkSet) {
     const prog = programDatabase[currentProgramKey];
     if (!prog || !prog.cus || !pkSet || pkSet.size === 0) return {};
@@ -1125,7 +1131,8 @@
 
       let effectiveRatio = Math.min(ratioVal, coachCap);
       let itemCapNum = isMK ? Infinity : (qty * effectiveRatio);
-      let maxCapacityStr = isMK ? "Mengikut Keperluan (MK)" : itemCapNum + " Pelajar";
+      // PEMBETULAN #6: Tukar unit kepada "Perantis" di dalam jadual Tab 3
+      let maxCapacityStr = isMK ? "Mengikut Keperluan (MK)" : itemCapNum + " Perantis";
 
       let stesenName = (eq.stesen || 'A').trim();
 
@@ -1178,7 +1185,7 @@
         totalFacilityCapacity += minCap;
       }
 
-      // KEMAS KINI: Lencana CU berserta Tooltip WA Terlibat disusun mengikut Abjad/Nombor
+      // KEMAS KINI ASAS: Lencana CU berserta Tooltip WA Terlibat disusun mengikut Abjad/Nombor
       let cuWaMap = getStationCuWaMap(stObj.pkSet);
       let badgesHtml = '';
       Object.keys(cuWaMap).sort().forEach(cuCode => {
@@ -1260,7 +1267,6 @@
             <div class="min-val">${displayMinCap} <span style="font-size:12px; font-weight:normal; color:#78350f;">${displayMinCap !== 'MK' ? 'Orang' : ''}</span></div>
           </div>
 
-          <!-- Kotak Kosong Kapasiti Sebenar Kad Stesen (Catatan Penilai) -->
           <div class="station-actual-card">
             <div class="actual-title">KAPASITI SEBENAR (mengambil kira ruang munasabah)</div>
             <div class="actual-box-empty"></div>
@@ -1410,7 +1416,7 @@
             const nisbahKey = keys.find(k => k.trim().toLowerCase().includes('nisbah'));
             const stesenKey = keys.find(k => k.trim().toLowerCase().includes('stesen'));
 
-            // KEMAS KINI: Memastikan data PK terus diselaras (Cth: P1 -> P01) ketika Excel dibaca
+            // KEMAS KINI ASAS: Memastikan data PK terus diselaras (Cth: P1 -> P01) ketika Excel dibaca
             let rawPK = pkKey ? String(row[pkKey] || '').trim() : '';
             let pkArr = rawPK.match(/P?\d+/gi) || [];
             pkArr = Array.from(new Set(pkArr.map(normalizePK).filter(Boolean)));
@@ -1440,7 +1446,8 @@
       } catch (err) {
         console.error("Excel Parsing Error:", err);
         alert("Gagal membaca fail Excel: " + err.message);
-        document.getElementById('dropZoneText').textContent = "Heret & Lepas Fail Excel Sini Atau Klik Untuk Muat Naik";
+        // PEMBETULAN #1: Tukar teks (Fallback)
+        document.getElementById('dropZoneText').textContent = "Heret & Lepas Fail / Klik Untuk Muat Naik";
       }
     };
     reader.readAsArrayBuffer(file);
