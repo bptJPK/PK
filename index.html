@@ -395,7 +395,7 @@
       <button class="btn btn-outline" onclick="addProcessColumn()"><span>➕</span> Proses Kerja</button>
       <button class="btn btn-outline" onclick="addEquipmentRow()"><span>➕</span> Peralatan</button>
       <!-- PEMBETULAN #2: Tukar teks butang ke Sembunyi / Papar CU -->
-      <button class="btn btn-outline" onclick="toggleCollapseAll()"><span>📁</span> <span id="collapseBtnText">Sembunyi Semua CU</span></button>
+      <button class="btn btn-outline" onclick="toggleCollapseAll()"><span>📁</span> <span id="collapseBtnText">Sembunyi Semua WA</span></button>
       <button class="btn btn-outline" style="background:#fef3c7; border-color:#f59e0b;" onclick="recalculateCapacity()"><span>⚡</span> Kira Semula Kapasiti</button>
       <button class="btn btn-outline" style="background:#f1f5f9; border-color:#94a3b8;" onclick="openPBSettingsModal()"><span>🏛️</span> Maklumat PB</button>
     </div>
@@ -965,7 +965,7 @@
       filteredCUs.forEach((_, cuIdx) => { cuCollapsedState[cuIdx] = isAllCollapsed; });
     }
     // PEMBETULAN #2: Tukar teks dari Collapse/Expand ke Sembunyi/Papar
-    document.getElementById('collapseBtnText').textContent = isAllCollapsed ? 'Papar Semua CU' : 'Sembunyi Semua CU';
+    document.getElementById('collapseBtnText').textContent = isAllCollapsed ? 'Papar Semua WA' : 'Sembunyi Semua WA';
     renderTable();
   }
 
