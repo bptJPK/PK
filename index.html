@@ -182,7 +182,6 @@
     .stat-sum-box .stat-label { font-size: 10px; font-weight: 800; color: #15803d; letter-spacing: 0.5px; text-transform: uppercase; }
     .stat-sum-box .stat-value { font-size: 22px; font-weight: 900; color: #16a34a; }
 
-    /* Kotak Kosong Kapasiti Sebenar Header */
     .stat-actual-box {
       border: 2px dashed #94a3b8; border-radius: 8px; background: #ffffff;
       padding: 6px 14px; text-align: center; min-width: 140px; min-height: 58px;
@@ -264,7 +263,6 @@
     .station-min-card .min-sub { font-size: 10.5px; color: #78350f; margin-top: 1px; }
     .station-min-card .min-val { font-size: 20px; font-weight: 900; color: #b45309; }
 
-    /* Kotak Kosong Kapasiti Sebenar Kad Stesen */
     .station-actual-card {
       border: 1px dashed #94a3b8; border-radius: 6px; background: #ffffff;
       padding: 8px 12px; margin-top: 6px; min-height: 48px; display: flex;
@@ -294,27 +292,13 @@
       .col-bil, .col-cu-name { position: static !important; }
       table.matrix-table { width: 100%; }
 
-      /* Ulang Header Jadual Pada Setiap Muka Surat Baharu */
-      thead {
-        display: table-header-group !important;
-      }
-      tr {
-        page-break-inside: avoid !important;
-      }
-      .station-card {
-        page-break-inside: avoid !important;
-      }
+      thead { display: table-header-group !important; }
+      tr { page-break-inside: avoid !important; }
+      .station-card { page-break-inside: avoid !important; }
 
-      /* Sembunyikan Teks Menegak 190px - Jimat Ruang Pada Cetakan */
-      .process-header-cell {
-        display: none !important;
-      }
-      .header-row-p-code th {
-        top: 0 !important;
-        position: static !important;
-      }
+      .process-header-cell { display: none !important; }
+      .header-row-p-code th { top: 0 !important; position: static !important; }
 
-      /* Footer Kekal Pada Bawah Setiap Muka Baharu */
       .print-footer-container {
         display: flex !important;
         position: fixed;
@@ -332,9 +316,7 @@
         z-index: 9999;
       }
 
-      .elective-badge-print-only {
-        display: inline-block !important;
-      }
+      .elective-badge-print-only { display: inline-block !important; }
     }
   </style>
 </head>
@@ -359,7 +341,7 @@
       <span class="tahap-badge" id="progTahap">Tahap -</span>
     </div>
 
-    <!-- Lencana Elektif (Hanya Muncul Pada Versi Cetakan) -->
+    <!-- Lencana Elektif (Cetakan Sahaja) -->
     <div class="info-item elective-badge-print-only">
       <span class="tahap-badge elective-badge-dim" id="electiveBadge">Tanpa Elektif</span>
     </div>
@@ -372,7 +354,7 @@
       <span>Elektif</span>
     </label>
 
-    <!-- PEMBETULAN #1: Tukar Teks "Heret & Lepas Fail..." -->
+    <!-- PEMBETULAN #1: Teks Muat Naik Ringkas -->
     <div id="dropZone" class="drop-zone-large" onclick="document.getElementById('excelFileInput').click()">
       <span style="font-size: 16px;">☁️</span>
       <span id="dropZoneText">Heret & Lepas Fail / Klik Untuk Muat Naik</span>
@@ -394,7 +376,7 @@
     <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
       <button class="btn btn-outline" onclick="addProcessColumn()"><span>➕</span> Proses Kerja</button>
       <button class="btn btn-outline" onclick="addEquipmentRow()"><span>➕</span> Peralatan</button>
-      <!-- PEMBETULAN #2: Tukar teks butang ke Sembunyi / Papar CU -->
+      <!-- PEMBETULAN #2: Tukar perkataan ke Sembunyi / Papar Semua WA -->
       <button class="btn btn-outline" onclick="toggleCollapseAll()"><span>📁</span> <span id="collapseBtnText">Sembunyi Semua WA</span></button>
       <button class="btn btn-outline" style="background:#fef3c7; border-color:#f59e0b;" onclick="recalculateCapacity()"><span>⚡</span> Kira Semula Kapasiti</button>
       <button class="btn btn-outline" style="background:#f1f5f9; border-color:#94a3b8;" onclick="openPBSettingsModal()"><span>🏛️</span> Maklumat PB</button>
@@ -432,7 +414,7 @@
           <tr class="header-row-1">
             <th class="col-bil eq-header">BIL</th>
             <th class="eq-header" style="width: 320px;">NAMA ALAT / KELENGKAPAN / BAHAN</th>
-            <!-- PEMBETULAN #4: Tukar QTY kepada KUANTITI -->
+            <!-- PEMBETULAN #4: QTY tukar ke KUANTITI -->
             <th class="eq-header" style="width: 75px;">KUANTITI</th>
             <th class="eq-header" style="width: 90px;">NISBAH</th>
             <th class="eq-header" style="width: 130px;">STESEN KERJA</th>
@@ -446,7 +428,6 @@
     <!-- Legenda Laporan Tab 2 -->
     <div class="report-legend-box">
       <span><strong>Nota / Legenda:</strong></span>
-      <!-- PEMBETULAN #4: Tukar QTY kepada KUANTITI -->
       <span>• <strong>KUANTITI</strong> = Kuantiti Alat</span>
       <span>• <strong>MK</strong> = Mengikut Keperluan</span>
     </div>
@@ -461,7 +442,7 @@
 
       <div class="facility-stats-row">
         <div style="background:#f8fafc; border:1px solid #cbd5e1; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:600;">
-          <!-- PEMBETULAN #5: Kemas kini label & dropdown Had Nisbah -->
+          <!-- PEMBETULAN #5: Kemas kini label & dropdown Had Nisbah Coach : Perantis -->
           <span style="color:#475569;">Had Nisbah Coach : Perantis :</span>
           <select id="coachRatioCap" onchange="recalculateCapacity()" style="margin-left:6px; padding:2px 6px; font-weight:bold; border-radius:4px; border:1px solid #94a3b8;">
             <option value="5" selected>1:5 (Lalai)</option>
@@ -505,7 +486,7 @@
           <tr class="header-row-1">
             <th class="col-bil eq-header" style="background:#0284c7 !important;">BIL</th>
             <th class="eq-header" style="background:#0284c7 !important; width: 280px;">NAMA ALAT / KELENGKAPAN</th>
-            <!-- PEMBETULAN #6: Tukar "QTY" dan "KAPASITI MAX (PELAJAR)" dalam jadual ini -->
+            <!-- PEMBETULAN #6: KUANTITI & KAPASITI MAKS (PERANTIS) -->
             <th class="eq-header" style="background:#0284c7 !important; width: 70px;">KUANTITI</th>
             <th class="eq-header" style="background:#0284c7 !important; width: 110px;">NISBAH ITEM</th>
             <th class="eq-header" style="background:#0284c7 !important; width: 120px;">STESEN KERJA</th>
@@ -539,7 +520,7 @@
   </div>
 </div>
 
-<!-- Modal Pop-Up Maklumat PB (Jimat Ruang UI) -->
+<!-- Modal Pop-Up Maklumat PB -->
 <div id="pbSettingsModal" class="modal-overlay">
   <div class="modal-card" style="width: 420px;">
     <div class="modal-header">
@@ -566,7 +547,7 @@
 <script>
   let customTemplateDownloadUrl = "https://drive.google.com/uc?export=download&id=1lJ-QE09JrG7T4Tj3hGMptzPX2bblXa2F";
 
-  let programDatabase = {};
+  let programDatabase = {}; // Menyimpan data ringkas { [code]: { name, tahap, cus: null } }
   let currentProgramKey = "";
   let matrixState = {};
   let cuCollapsedState = {};
@@ -608,24 +589,23 @@
     document.getElementById('footerPbAddressDisplay').textContent = pbAddr;
   }
 
+  // PILIHAN 1 (FASA 1): Hanya ambil senarai Kod & Nama Program sahaja (Ringan & Selamat)
   function loadDataFromAppsScript() {
-    fetch('/api/noss')
+    fetch('/api/noss?action=getList')
       .then(response => {
-        if (!response.ok) {
-          throw new Error("HTTP error! Status: " + response.status);
-        }
+        if (!response.ok) throw new Error("HTTP error! Status: " + response.status);
         return response.json();
       })
       .then(data => {
         if (data) {
           programDatabase = data;
           setupSearchDatalist();
-          console.log("Pangkalan data NOSS berhasil dimuat lewat proxy!");
+          console.log("Senarai NOSS berhasil dimuat lewat proxy!");
         }
       })
       .catch(err => {
         console.warn("Proxy Netlify gagal, mencoba akses Google Script langsung...", err);
-        const directUrl = "https://script.google.com/macros/s/AKfycbyhpqwlzs3SopGhZcqy525nBHalfCg9nbvKSRygrdpAZ5DNvvEbfjBanrnSWieNar8V/exec?action=getData";
+        const directUrl = "https://script.google.com/macros/s/AKfycbyhpqwlzs3SopGhZcqy525nBHalfCg9nbvKSRygrdpAZ5DNvvEbfjBanrnSWieNar8V/exec?action=getList";
   
         fetch(directUrl)
           .then(res => res.json())
@@ -633,11 +613,11 @@
             if (data) {
               programDatabase = data;
               setupSearchDatalist();
-              console.log("Pangkalan data NOSS berhasil dimuat via direct fetch!");
+              console.log("Senarai NOSS berhasil dimuat via direct fetch!");
             }
           })
           .catch(directErr => {
-            console.error("Gagal memuat data program:", directErr);
+            console.error("Gagal memuat senarai program:", directErr);
           });
       });
   }
@@ -656,6 +636,7 @@
     });
   }
 
+  // PILIHAN 1 (FASA 2): Apabila pengguna pilih kod, baru tarik data CU & WA program berkenaan
   function onProgramSearchSelect(val) {
     if (!val) return;
     val = val.trim();
@@ -665,10 +646,48 @@
       foundKey = Object.keys(programDatabase).find(k => k.toLowerCase().includes(val.toLowerCase()) || (programDatabase[k].name && programDatabase[k].name.toLowerCase().includes(val.toLowerCase())));
     }
 
-    if (foundKey && programDatabase[foundKey]) {
+    if (!foundKey) return;
+
+    // Jika data CU & WA sudah pernah dimuat sebelum ini (disimpan dalam memori sesi)
+    if (programDatabase[foundKey].cus && programDatabase[foundKey].cus.length > 0) {
       currentProgramKey = foundKey;
       initMatrix();
+      return;
     }
+
+    // Paparkan status memuat data
+    document.getElementById('progName').textContent = "Sedang memuat data program...";
+    document.getElementById('progTahap').textContent = "...";
+
+    fetch(`/api/noss?action=getProgram&code=${encodeURIComponent(foundKey)}`)
+      .then(res => {
+        if (!res.ok) throw new Error("HTTP error! Status: " + res.status);
+        return res.json();
+      })
+      .then(progData => {
+        if (progData) {
+          programDatabase[foundKey] = progData;
+          currentProgramKey = foundKey;
+          initMatrix();
+        }
+      })
+      .catch(err => {
+        console.warn("Proxy gagal memuat perincian program, cuba akses direct...", err);
+        const directUrl = `https://script.google.com/macros/s/AKfycbyhpqwlzs3SopGhZcqy525nBHalfCg9nbvKSRygrdpAZ5DNvvEbfjBanrnSWieNar8V/exec?action=getProgram&code=${encodeURIComponent(foundKey)}`;
+        fetch(directUrl)
+          .then(res => res.json())
+          .then(progData => {
+            if (progData) {
+              programDatabase[foundKey] = progData;
+              currentProgramKey = foundKey;
+              initMatrix();
+            }
+          })
+          .catch(directErr => {
+            alert("Gagal memuat perincian program: " + directErr.message);
+            document.getElementById('progName').textContent = "Ralat memuat data program.";
+          });
+      });
   }
 
   function onElectiveToggleChange() {
@@ -816,7 +835,7 @@
     tbody.innerHTML = '';
 
     const prog = programDatabase[currentProgramKey];
-    if (!prog) {
+    if (!prog || !prog.cus) {
       tbody.innerHTML = `<tr><td colspan="${activeMaxColumns + 2}" style="padding: 20px; color: #64748b; font-style: italic;">Sila pilih program di bahagian atas untuk memuatkan jadual pemetaan.</td></tr>`;
       return;
     }
@@ -964,7 +983,7 @@
       const filteredCUs = getFilteredCUs(prog);
       filteredCUs.forEach((_, cuIdx) => { cuCollapsedState[cuIdx] = isAllCollapsed; });
     }
-    // PEMBETULAN #2: Tukar teks dari Collapse/Expand ke Sembunyi/Papar
+    // PEMBETULAN #2: Tukar teks ke Sembunyi / Papar Semua WA
     document.getElementById('collapseBtnText').textContent = isAllCollapsed ? 'Papar Semua WA' : 'Sembunyi Semua WA';
     renderTable();
   }
@@ -1057,7 +1076,7 @@
     recalculateCapacity();
   }
 
-  // KEMAS KINI ASAS: Fungsi diselaraskan untuk mengesan PK dengan padanan format standard
+  // KEMAS KINI ASAS: Fungsi diselaraskan untuk mengesan PK dengan format standard
   function getStationCuWaMap(pkSet) {
     const prog = programDatabase[currentProgramKey];
     if (!prog || !prog.cus || !pkSet || pkSet.size === 0) return {};
@@ -1131,7 +1150,7 @@
 
       let effectiveRatio = Math.min(ratioVal, coachCap);
       let itemCapNum = isMK ? Infinity : (qty * effectiveRatio);
-      // PEMBETULAN #6: Tukar unit kepada "Perantis" di dalam jadual Tab 3
+      // PEMBETULAN #6: Perkataan Perantis dalam jadual
       let maxCapacityStr = isMK ? "Mengikut Keperluan (MK)" : itemCapNum + " Perantis";
 
       let stesenName = (eq.stesen || 'A').trim();
@@ -1185,7 +1204,7 @@
         totalFacilityCapacity += minCap;
       }
 
-      // KEMAS KINI ASAS: Lencana CU berserta Tooltip WA Terlibat disusun mengikut Abjad/Nombor
+      // KEMAS KINI ASAS: Lencana CU berserta Tooltip WA
       let cuWaMap = getStationCuWaMap(stObj.pkSet);
       let badgesHtml = '';
       Object.keys(cuWaMap).sort().forEach(cuCode => {
@@ -1416,7 +1435,6 @@
             const nisbahKey = keys.find(k => k.trim().toLowerCase().includes('nisbah'));
             const stesenKey = keys.find(k => k.trim().toLowerCase().includes('stesen'));
 
-            // KEMAS KINI ASAS: Memastikan data PK terus diselaras (Cth: P1 -> P01) ketika Excel dibaca
             let rawPK = pkKey ? String(row[pkKey] || '').trim() : '';
             let pkArr = rawPK.match(/P?\d+/gi) || [];
             pkArr = Array.from(new Set(pkArr.map(normalizePK).filter(Boolean)));
@@ -1446,7 +1464,6 @@
       } catch (err) {
         console.error("Excel Parsing Error:", err);
         alert("Gagal membaca fail Excel: " + err.message);
-        // PEMBETULAN #1: Tukar teks (Fallback)
         document.getElementById('dropZoneText').textContent = "Heret & Lepas Fail / Klik Untuk Muat Naik";
       }
     };
